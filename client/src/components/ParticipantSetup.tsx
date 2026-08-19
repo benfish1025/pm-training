@@ -61,8 +61,8 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
           我（始终参会）
         </h3>
-        <div className="flex items-center gap-3 p-3.5 bg-brand-50 border border-brand-200 rounded-xl">
-          <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center font-semibold shrink-0">
+        <div className="flex items-center gap-3 p-3.5 bg-gray-50 border border-gray-100 rounded-xl">
+          <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-semibold shrink-0">
             我
           </div>
           <div>
@@ -92,7 +92,7 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
                 }`}
               >
                 <div
-                  className={`w-10 h-10 rounded-full ${preset.avatarColor} text-white flex items-center justify-center text-lg shrink-0`}
+                  className={`w-10 h-10 rounded-full ${preset.avatarColor} flex items-center justify-center text-lg shrink-0`}
                 >
                   {preset.emoji}
                 </div>
@@ -122,7 +122,7 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
               >
                 <div className="flex items-start gap-3 mb-3">
                   <div
-                    className={`w-10 h-10 rounded-full ${p.avatarColor} text-white flex items-center justify-center font-semibold shrink-0`}
+                    className={`w-10 h-10 rounded-full ${p.avatarColor} flex items-center justify-center font-semibold shrink-0`}
                   >
                     {p.name[0] || '?'}
                   </div>

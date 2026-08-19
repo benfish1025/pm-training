@@ -22,7 +22,7 @@ export default function App() {
       personality: '',
       speakingStyle: '',
       isUser: true,
-      avatarColor: 'bg-brand-600',
+      avatarColor: 'bg-gray-900 text-white',
     },
   ])
   const [meetingInfo, setMeetingInfo] = useState<MeetingInfo>({
@@ -38,10 +38,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 shrink-0">
+      <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 shrink-0">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center text-sm font-bold">
+            <div className="w-8 h-8 rounded-lg border border-gray-200 text-gray-700 flex items-center justify-center text-sm font-bold">
               PM
             </div>
             <h1 className="text-lg font-bold text-gray-900">会议演练室</h1>
@@ -54,10 +54,10 @@ export default function App() {
                 <div
                   className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                     i === currentStepIndex
-                      ? 'bg-brand-600 text-white'
+                      ? 'bg-gray-900 text-white'
                       : i < currentStepIndex
-                        ? 'bg-brand-100 text-brand-700'
-                        : 'bg-gray-100 text-gray-400'
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-50 text-gray-400'
                   }`}
                 >
                   <span className="w-4 h-4 flex items-center justify-center">
@@ -66,7 +66,7 @@ export default function App() {
                   <span className="hidden sm:inline">{s.label}</span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-3 sm:w-6 h-px ${i < currentStepIndex ? 'bg-brand-300' : 'bg-gray-200'}`} />
+                  <div className={`w-3 sm:w-6 h-px ${i < currentStepIndex ? 'bg-gray-300' : 'bg-gray-100'}`} />
                 )}
               </div>
             ))}
