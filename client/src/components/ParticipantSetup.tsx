@@ -1,0 +1,203 @@
+import { type Dispatch, type SetStateAction } from 'react'
+import { PRESET_ROLES, AVATAR_COLORS, type Participant, type PresetRole } from '../types'
+
+interface Props {
+  participants: Participant[]
+  setParticipants: Dispatch<SetStateAction<Participant[]>>
+  onNext: () => void
+}
+
+export function ParticipantSetup({ participants, setParticipants, onNext }: Props) {
+  const aiParticipants = participants.filter((p) => !p.isUser)
+
+  const addPreset = (preset: PresetRole) => {
+    const newParticipant: Participant = {
+      id: `p${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: preset.name,
+      title: preset.title,
+      personality: preset.personality,
+      speakingStyle: preset.speakingStyle,
+      isUser: false,
+      avatarColor: preset.avatarColor,
+    }
+    setParticipants((prev) => [...prev, newParticipant])
+  }
+
+  const addCustom = () => {
+    const idx = aiParticipants.length
+    const newParticipant: Participant = {
+      id: `p${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: '新角色',
+      title: '参会者',
+      personality: '',
+      speakingStyle: '',
+      isUser: false,
+      avatarColor: AVATAR_COLORS[idx % AVATAR_COLORS.length],
+    }
+    setParticipants((prev) => [...prev, newParticipant])
+  }
+
+  const removeParticipant = (id: string) => {
+    setParticipants((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  const updateParticipant = (id: string, field: keyof Participant, value: string) => {
+    setParticipants((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
+    )
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 overflow-y-auto h-full">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">参会人员组装台</h2>
+        <p className="text-gray-500 mt-1">
+          选择参会角色，组建你的会议团队。你作为产品经理始终参会。
+        </p>
+      </div>
+
+      {/* User (always present) */}
+      <div className="mb-6">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+          我（始终参会）
+        </h3>
+        <div className="flex items-center gap-3 p-3.5 bg-brand-50 border border-brand-200 rounded-xl">
+          <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center font-semibold shrink-0">
+            我
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">我</div>
+            <div className="text-sm text-gray-500">产品经理</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Preset roles */}
+      <div className="mb-6">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+          快速添加角色
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+          {PRESET_ROLES.map((preset) => {
+            const alreadyAdded = aiParticipants.some((p) => p.title === preset.title)
+            return (
+              <button
+                key={preset.title}
+                onClick={() => addPreset(preset)}
+                disabled={alreadyAdded}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                  alreadyAdded
+                    ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                    : 'border-gray-200 hover:border-brand-400 hover:bg-brand-50 cursor-pointer'
+                }`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-full ${preset.avatarColor} text-white flex items-center justify-center text-lg shrink-0`}
+                >
+                  {preset.emoji}
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-900 text-sm truncate">
+                    {preset.title}
+                  </div>
+                  <div className="text-xs text-gray-500">{preset.name}</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* AI Participants list */}
+      {aiParticipants.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            已添加参会者（{aiParticipants.length}）
+          </h3>
+          <div className="space-y-3">
+            {aiParticipants.map((p) => (
+              <div
+                key={p.id}
+                className="p-4 bg-white border border-gray-200 rounded-xl animate-fade-in"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className={`w-10 h-10 rounded-full ${p.avatarColor} text-white flex items-center justify-center font-semibold shrink-0`}
+                  >
+                    {p.name[0] || '?'}
+                  </div>
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-400">姓名</label>
+                      <input
+                        value={p.name}
+                        onChange={(e) => updateParticipant(p.id, 'name', e.target.value)}
+                        className="w-full mt-0.5 px-2.5 py-1.5 text-sm font-medium border border-gray-200 rounded-lg focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400">职位</label>
+                      <input
+                        value={p.title}
+                        onChange={(e) => updateParticipant(p.id, 'title', e.target.value)}
+                        className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-100"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeParticipant(p.id)}
+                    className="text-gray-300 hover:text-red-500 text-sm shrink-0 p-1"
+                    title="移除"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-400">性格特点</label>
+                    <textarea
+                      value={p.personality}
+                      onChange={(e) => updateParticipant(p.id, 'personality', e.target.value)}
+                      className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg resize-none focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-100"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400">说话风格</label>
+                    <textarea
+                      value={p.speakingStyle}
+                      onChange={(e) => updateParticipant(p.id, 'speakingStyle', e.target.value)}
+                      className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg resize-none focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-100"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add custom + Next */}
+      <div className="flex items-center justify-between pt-2">
+        <button
+          onClick={addCustom}
+          className="px-4 py-2 text-sm font-medium text-brand-600 border border-brand-300 rounded-lg hover:bg-brand-50"
+        >
+          + 自定义角色
+        </button>
+        <button
+          onClick={onNext}
+          disabled={aiParticipants.length === 0}
+          className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
+            aiParticipants.length === 0
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-brand-600 text-white hover:bg-brand-700 cursor-pointer'
+          }`}
+        >
+          下一步：填写会议信息 →
+        </button>
+      </div>
+    </div>
+  )
+}
