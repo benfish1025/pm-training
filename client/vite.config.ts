@@ -12,6 +12,17 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     proxy: {
+      '/api/chat/stream': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            // Disable buffering for SSE streams
+            proxyRes.headers['x-no-buffering'] = 'true'
+            delete proxyRes.headers['content-length']
+          })
+        },
+      },
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,

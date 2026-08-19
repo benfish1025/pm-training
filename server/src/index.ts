@@ -37,14 +37,27 @@ app.post('/api/chat/stream', async (req, res) => {
     },
   ]
 
+  // SSE headers to prevent buffering by proxies
   res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
     Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
+    'Content-Encoding': 'none',
   })
 
+  // Send an initial comment to establish the connection
+  res.write(': connected\n\n')
+
   let currentHistory = [...fullHistory]
+  let hasError = false
+
+  // Heartbeat to keep connection alive through proxies
+  const heartbeat = setInterval(() => {
+    if (!res.writableEnded) {
+      res.write(': hb\n\n')
+    }
+  }, 10000)
 
   for (const participant of aiParticipants) {
     if (res.writableEnded) break
@@ -67,6 +80,7 @@ app.post('/api/chat/stream', async (req, res) => {
 
     try {
       for await (const chunk of streamLLM(messages)) {
+        if (res.writableEnded) break
         fullContent += chunk
         res.write(
           `data: ${JSON.stringify({
@@ -77,14 +91,20 @@ app.post('/api/chat/stream', async (req, res) => {
         )
       }
     } catch (err: any) {
-      res.write(
-        `data: ${JSON.stringify({
-          type: 'error',
-          message: `AI 生成失败: ${err.message}`,
-        })}\n\n`,
-      )
+      console.error('LLM error:', err)
+      hasError = true
+      if (!res.writableEnded) {
+        res.write(
+          `data: ${JSON.stringify({
+            type: 'error',
+            message: `AI 生成失败: ${err.message || '未知错误'}`,
+          })}\n\n`,
+        )
+      }
       break
     }
+
+    if (res.writableEnded) break
 
     // Notify: this participant finished
     res.write(
@@ -107,8 +127,12 @@ app.post('/api/chat/stream', async (req, res) => {
     })
   }
 
-  res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-  res.end()
+  clearInterval(heartbeat)
+
+  if (!res.writableEnded) {
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+    res.end()
+  }
 })
 
 app.get('/api/health', (_req, res) => {
