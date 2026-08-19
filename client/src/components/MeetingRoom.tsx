@@ -45,7 +45,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
       isUser: true,
       isStreaming: false,
       timestamp: Date.now(),
-      avatarColor: 'bg-gray-900 text-white',
+      avatarColor: 'bg-arcoblue-6 text-white',
     }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
@@ -82,7 +82,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
           isUser: false,
           isStreaming: true,
           timestamp: Date.now(),
-          avatarColor: event.avatarColor || 'bg-gray-100 text-gray-600',
+          avatarColor: event.avatarColor || 'bg-arco-2 text-arco-6',
         }
         setMessages((prev) => [...prev, newMsg])
         setStreamingParticipantId(event.participantId!)
@@ -131,19 +131,19 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
   return (
     <div className="max-w-5xl mx-auto h-full flex flex-col">
       {/* Meeting header */}
-      <div className="px-4 sm:px-6 py-3 bg-white border-b border-gray-100 shrink-0">
+      <div className="px-4 sm:px-6 py-3 bg-white border-b border-arco-3 shrink-0">
         <div className="flex items-center justify-between">
           <div className="min-w-0 flex-1">
-            <h2 className="font-bold text-gray-900 truncate">
+            <h2 className="font-medium text-arco-10 truncate">
               {meetingInfo.topic || '未命名会议'}
             </h2>
             <div className="flex items-center gap-2 mt-0.5 overflow-hidden">
               {participants.map((p) => (
                 <span
                   key={p.id}
-                  className="inline-flex items-center gap-1 text-xs text-gray-500 shrink-0"
+                  className="inline-flex items-center gap-1 text-xs text-arco-6 shrink-0"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-arco-4" />
                   {p.name}
                 </span>
               ))}
@@ -151,7 +151,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
           </div>
           <button
             onClick={onExit}
-            className="ml-3 px-3 py-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 shrink-0"
+            className="ml-3 px-3 py-1.5 text-sm text-arco-6 border border-arco-3 rounded-arco hover:bg-arco-1 shrink-0 transition-colors"
           >
             退出会议
           </button>
@@ -162,20 +162,20 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-2xl mb-4">
+            <div className="w-16 h-16 rounded-full bg-arcoblue-1 text-arcoblue-5 flex items-center justify-center text-2xl mb-4">
               💬
             </div>
-            <h3 className="text-lg font-semibold text-gray-700">会议已准备就绪</h3>
-            <p className="text-gray-400 mt-1 max-w-sm">
+            <h3 className="text-base font-medium text-arco-8">会议已准备就绪</h3>
+            <p className="text-arco-5 mt-1 max-w-sm text-sm">
               在下方输入框中开始你的发言，参会人员将轮流回应。
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2 max-w-md">
               {aiParticipants.map((p) => (
                 <span
                   key={p.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-100 rounded-full text-xs text-gray-600"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-arco-3 rounded-full text-xs text-arco-7"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-arco-4" />
                   {p.name}（{p.title}）
                 </span>
               ))}
@@ -206,7 +206,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
       </div>
 
       {/* Input area */}
-      <div className="px-4 sm:px-6 py-3 bg-white border-t border-gray-100 shrink-0">
+      <div className="px-4 sm:px-6 py-3 bg-white border-t border-arco-3 shrink-0">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -216,16 +216,16 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
             disabled={isStreaming}
             placeholder={isStreaming ? '参会人员正在发言中...' : '输入你的发言（Enter 发送，Shift+Enter 换行）'}
             rows={1}
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl resize-none focus:border-gray-400 focus:outline-none transition-colors max-h-32 disabled:bg-gray-50 disabled:text-gray-400"
+            className="flex-1 px-4 py-2.5 border border-arco-3 rounded-arco-lg resize-none focus:border-arcoblue-5 focus:outline-none focus:ring-2 focus:ring-arcoblue-1 transition-colors max-h-32 disabled:bg-arco-1 disabled:text-arco-4"
             style={{ minHeight: '42px' }}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isStreaming}
-            className={`px-5 py-2.5 rounded-xl font-medium shrink-0 transition-all ${
+            className={`px-5 py-2.5 rounded-arco-lg font-medium shrink-0 transition-all ${
               !input.trim() || isStreaming
-                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                : 'bg-gray-900 text-white hover:bg-gray-800 cursor-pointer'
+                ? 'bg-arco-2 text-arco-4 cursor-not-allowed'
+                : 'bg-arcoblue-6 text-white hover:bg-arcoblue-5 cursor-pointer'
             }`}
           >
             发送
@@ -249,12 +249,12 @@ function MessageBubble({
     return (
       <div className="flex flex-col items-end animate-fade-in">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs text-gray-400">{formatTime(message.timestamp)}</span>
-          <span className="text-xs font-medium text-gray-500">
+          <span className="text-xs text-arco-5">{formatTime(message.timestamp)}</span>
+          <span className="text-xs font-medium text-arco-7">
             {message.senderName}（{message.senderTitle}）
           </span>
         </div>
-        <div className="max-w-[80%] px-4 py-2.5 bg-gray-100 text-gray-900 rounded-2xl rounded-tr-sm">
+        <div className="max-w-[80%] px-4 py-2.5 bg-arcoblue-6 text-white rounded-arco-lg rounded-tr-sm">
           <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
             {message.content}
           </p>
@@ -267,20 +267,20 @@ function MessageBubble({
     <div className="flex flex-col items-start animate-fade-in">
       <div className="flex items-center gap-2 mb-1">
         <div
-          className={`w-7 h-7 rounded-full ${message.avatarColor} flex items-center justify-center text-xs font-semibold shrink-0`}
+          className={`w-7 h-7 rounded-full ${message.avatarColor} flex items-center justify-center text-xs font-medium shrink-0`}
         >
           {message.senderName[0] || '?'}
         </div>
-        <span className="text-xs font-medium text-gray-500">
+        <span className="text-xs font-medium text-arco-7">
           {message.senderName}（{message.senderTitle}）
         </span>
-        <span className="text-xs text-gray-400">{formatTime(message.timestamp)}</span>
+        <span className="text-xs text-arco-5">{formatTime(message.timestamp)}</span>
       </div>
-      <div className="ml-9 max-w-[80%] px-4 py-2.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm">
-        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">
+      <div className="ml-9 max-w-[80%] px-4 py-2.5 bg-white border border-arco-3 rounded-arco-lg rounded-tl-sm">
+        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-arco-8">
           {message.content}
           {message.isStreaming && (
-            <span className="inline-block w-1.5 h-4 ml-0.5 bg-gray-300 animate-pulse align-middle" />
+            <span className="inline-block w-1.5 h-4 ml-0.5 bg-arcoblue-4 animate-pulse align-middle" />
           )}
         </p>
       </div>
@@ -293,19 +293,19 @@ function TypingIndicator({ message }: { message: ChatMessage }) {
     <div className="flex flex-col items-start animate-fade-in">
       <div className="flex items-center gap-2 mb-1">
         <div
-          className={`w-7 h-7 rounded-full ${message.avatarColor} flex items-center justify-center text-xs font-semibold shrink-0`}
+          className={`w-7 h-7 rounded-full ${message.avatarColor} flex items-center justify-center text-xs font-medium shrink-0`}
         >
           {message.senderName[0] || '?'}
         </div>
-        <span className="text-xs font-medium text-gray-500">
+        <span className="text-xs font-medium text-arco-7">
           {message.senderName}（{message.senderTitle}）
         </span>
       </div>
-      <div className="ml-9 px-4 py-3 bg-white border border-gray-100 rounded-2xl rounded-tl-sm">
+      <div className="ml-9 px-4 py-3 bg-white border border-arco-3 rounded-arco-lg rounded-tl-sm">
         <div className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-2 h-2 bg-arco-4 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2 h-2 bg-arco-4 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2 h-2 bg-arco-4 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>

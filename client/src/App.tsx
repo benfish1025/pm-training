@@ -22,7 +22,7 @@ export default function App() {
       personality: '',
       speakingStyle: '',
       isUser: true,
-      avatarColor: 'bg-gray-900 text-white',
+      avatarColor: 'bg-arcoblue-6 text-white',
     },
   ])
   const [meetingInfo, setMeetingInfo] = useState<MeetingInfo>({
@@ -36,15 +36,15 @@ export default function App() {
   const currentStepIndex = STEPS.findIndex((s) => s.key === step)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-arco-1 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 shrink-0">
+      <header className="bg-white border-b border-arco-3 px-4 sm:px-6 py-3 shrink-0">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg border border-gray-200 text-gray-700 flex items-center justify-center text-sm font-bold">
+            <div className="w-8 h-8 rounded-arco bg-arcoblue-6 text-white flex items-center justify-center text-xs font-bold">
               PM
             </div>
-            <h1 className="text-lg font-bold text-gray-900">会议演练室</h1>
+            <h1 className="text-base font-medium text-arco-10">会议演练室</h1>
           </div>
 
           {/* Stepper */}
@@ -52,12 +52,12 @@ export default function App() {
             {STEPS.map((s, i) => (
               <div key={s.key} className="flex items-center">
                 <div
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-arco text-xs sm:text-sm transition-colors ${
                     i === currentStepIndex
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-arcoblue-6 text-white font-medium'
                       : i < currentStepIndex
-                        ? 'bg-gray-100 text-gray-600'
-                        : 'bg-gray-50 text-gray-400'
+                        ? 'bg-arcoblue-1 text-arcoblue-6'
+                        : 'bg-arco-1 text-arco-5'
                   }`}
                 >
                   <span className="w-4 h-4 flex items-center justify-center">
@@ -66,7 +66,7 @@ export default function App() {
                   <span className="hidden sm:inline">{s.label}</span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-3 sm:w-6 h-px ${i < currentStepIndex ? 'bg-gray-300' : 'bg-gray-100'}`} />
+                  <div className={`w-3 sm:w-6 h-px ${i < currentStepIndex ? 'bg-arcoblue-3' : 'bg-arco-3'}`} />
                 )}
               </div>
             ))}
