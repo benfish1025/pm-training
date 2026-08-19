@@ -92,6 +92,14 @@ export function buildMessages(
 export async function* streamLLM(
   messages: Array<{ role: string; content: string }>,
 ): AsyncGenerator<string> {
+  // 调试观测：打印装配好的完整提示词
+  console.log('\n========== LLM 请求提示词 ==========')
+  for (const msg of messages) {
+    console.log(`--- role: ${msg.role} ---`)
+    console.log(msg.content)
+  }
+  console.log('=====================================\n')
+
   const response = await fetch(`${ARK_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
