@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, type Dispatch, type SetStateAction } from 'react'
-import { streamChat, type SSEEvent } from '../api'
+import { streamChat } from '../api'
 import type { Participant, MeetingInfo, ChatMessage } from '../types'
 
 interface Props {
@@ -32,9 +32,6 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
 
-    // Capture previous messages for history (server adds user message itself)
-    const previousMessages = messages
-
     // Add user message immediately
     const userMessage: ChatMessage = {
       id: `msg${Date.now()}_user`,
@@ -51,69 +48,79 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
     setInput('')
     setIsStreaming(true)
 
-    try {
-      const stream = streamChat({
-        userMessage: trimmed,
-        participants,
-        meetingInfo,
-        history: previousMessages,
-      })
+    // 本地维护完整历史，逐个参与者单独请求，避免单条 SSE 连接
+    // 持续时间过长被云端网关中断（ERR_INCOMPLETE_CHUNKED_ENCODING）
+    let history: ChatMessage[] = [...messages, userMessage]
+    let hasError = false
 
-      for await (const event of stream) {
-        handleSSEEvent(event)
-      }
-    } catch (err) {
-      console.error('Stream error:', err)
-    } finally {
-      setIsStreaming(false)
-      setStreamingParticipantId(null)
-    }
-  }
+    for (const p of aiParticipants) {
+      if (hasError) break
 
-  const handleSSEEvent = (event: SSEEvent) => {
-    switch (event.type) {
-      case 'participant_start': {
-        const newMsg: ChatMessage = {
-          id: `msg${Date.now()}_${event.participantId}`,
-          senderId: event.participantId!,
-          senderName: event.participantName!,
-          senderTitle: event.participantTitle!,
+      const msgId = `msg${Date.now()}_${p.id}_${Math.random().toString(36).slice(2, 7)}`
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: msgId,
+          senderId: p.id,
+          senderName: p.name,
+          senderTitle: p.title,
           content: '',
           isUser: false,
           isStreaming: true,
           timestamp: Date.now(),
-          avatarColor: event.avatarColor || 'bg-arco-2 text-arco-6',
+          avatarColor: p.avatarColor,
+        },
+      ])
+      setStreamingParticipantId(p.id)
+
+      let content = ''
+      try {
+        const stream = streamChat({
+          speaker: p,
+          participants,
+          meetingInfo,
+          history,
+        })
+
+        for await (const event of stream) {
+          if (event.type === 'delta' && event.content) {
+            content += event.content
+            const snapshot = content
+            setMessages((prev) =>
+              prev.map((m) => (m.id === msgId ? { ...m, content: snapshot } : m)),
+            )
+          } else if (event.type === 'error') {
+            console.error('SSE error:', event.message)
+          }
         }
-        setMessages((prev) => [...prev, newMsg])
-        setStreamingParticipantId(event.participantId!)
-        break
+      } catch (err) {
+        console.error('Stream error:', err)
+        hasError = true
       }
-      case 'delta': {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.senderId === event.participantId && m.isStreaming
-              ? { ...m, content: m.content + (event.content || '') }
-              : m,
-          ),
-        )
-        break
+
+      if (content) {
+        const finalMsg: ChatMessage = {
+          id: msgId,
+          senderId: p.id,
+          senderName: p.name,
+          senderTitle: p.title,
+          content,
+          isUser: false,
+          isStreaming: false,
+          timestamp: Date.now(),
+          avatarColor: p.avatarColor,
+        }
+        setMessages((prev) => prev.map((m) => (m.id === msgId ? finalMsg : m)))
+        history = [...history, finalMsg]
+      } else {
+        // 没有生成任何内容则移除占位消息，避免空气泡
+        setMessages((prev) => prev.filter((m) => m.id !== msgId))
       }
-      case 'participant_end': {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.senderId === event.participantId && m.isStreaming
-              ? { ...m, isStreaming: false, content: event.content || m.content }
-              : m,
-          ),
-        )
-        setStreamingParticipantId(null)
-        break
-      }
-      case 'error': {
-        console.error('SSE error:', event.message)
-        break
-      }
+      setStreamingParticipantId(null)
     }
+
+    setIsStreaming(false)
+    setStreamingParticipantId(null)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

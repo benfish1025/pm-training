@@ -11,7 +11,7 @@ export interface SSEEvent {
 }
 
 export async function* streamChat(data: {
-  userMessage: string
+  speaker: Participant
   participants: Participant[]
   meetingInfo: MeetingInfo
   history: ChatMessage[]
@@ -29,7 +29,7 @@ export async function* streamChat(data: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      userMessage: data.userMessage,
+      speaker: data.speaker,
       participants: data.participants,
       meetingInfo: data.meetingInfo,
       history,
@@ -54,7 +54,8 @@ export async function* streamChat(data: {
 
     for (const line of lines) {
       const trimmed = line.trim()
-      if (!trimmed || !trimmed.startsWith('data: ')) continue
+      if (!trimmed || trimmed.startsWith(':')) continue
+      if (!trimmed.startsWith('data: ')) continue
 
       const dataStr = trimmed.slice(6)
       try {

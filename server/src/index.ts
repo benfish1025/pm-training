@@ -14,28 +14,15 @@ app.use(cors())
 app.use(express.json({ limit: '10mb' }))
 
 interface ChatRequestBody {
-  userMessage: string
+  // 当前需要发言的 AI 参与者（一次请求只生成一个人的回复）
+  speaker: Participant
   participants: Participant[]
   meetingInfo: MeetingInfo
   history: HistoryMessage[]
 }
 
 app.post('/api/chat/stream', async (req, res) => {
-  const { userMessage, participants, meetingInfo, history } = req.body as ChatRequestBody
-
-  const aiParticipants = (participants || []).filter((p) => !p.isUser)
-
-  // Build full history including the user's new message
-  const fullHistory: HistoryMessage[] = [
-    ...(history || []),
-    {
-      senderId: 'user',
-      senderName: '你',
-      title: '产品经理',
-      content: userMessage,
-      isUser: true,
-    },
-  ]
+  const { speaker, participants, meetingInfo, history } = req.body as ChatRequestBody
 
   // SSE headers to prevent buffering by proxies
   res.writeHead(200, {
@@ -43,93 +30,74 @@ app.post('/api/chat/stream', async (req, res) => {
     'Cache-Control': 'no-cache, no-transform',
     Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
-    'Content-Encoding': 'none',
   })
 
   // Send an initial comment to establish the connection
   res.write(': connected\n\n')
 
-  let currentHistory = [...fullHistory]
-  let hasError = false
+  // Track client disconnect so we can stop generating early
+  let aborted = false
+  res.on('close', () => {
+    aborted = true
+  })
 
   // Heartbeat to keep connection alive through proxies
   const heartbeat = setInterval(() => {
-    if (!res.writableEnded) {
+    if (!res.writableEnded && !res.destroyed) {
       res.write(': hb\n\n')
     }
   }, 10000)
 
-  for (const participant of aiParticipants) {
-    if (res.writableEnded) break
-
-    // Notify: this participant is starting
-    res.write(
-      `data: ${JSON.stringify({
-        type: 'participant_start',
-        participantId: participant.id,
-        participantName: participant.name,
-        participantTitle: participant.title,
-        avatarColor: participant.avatarColor,
-      })}\n\n`,
-    )
-
-    const systemPrompt = buildSystemPrompt(participant, meetingInfo, participants)
-    const messages = buildMessages(systemPrompt, currentHistory)
-
-    let fullContent = ''
-
-    try {
-      for await (const chunk of streamLLM(messages)) {
-        if (res.writableEnded) break
-        fullContent += chunk
-        res.write(
-          `data: ${JSON.stringify({
-            type: 'delta',
-            participantId: participant.id,
-            content: chunk,
-          })}\n\n`,
-        )
-      }
-    } catch (err: any) {
-      console.error('LLM error:', err)
-      hasError = true
-      if (!res.writableEnded) {
-        res.write(
-          `data: ${JSON.stringify({
-            type: 'error',
-            message: `AI 生成失败: ${err.message || '未知错误'}`,
-          })}\n\n`,
-        )
-      }
-      break
+  const send = (payload: Record<string, unknown>) => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.write(`data: ${JSON.stringify(payload)}\n\n`)
     }
+  }
 
-    if (res.writableEnded) break
+  // Notify: this speaker is starting
+  send({
+    type: 'participant_start',
+    participantId: speaker.id,
+    participantName: speaker.name,
+    participantTitle: speaker.title,
+    avatarColor: speaker.avatarColor,
+  })
 
-    // Notify: this participant finished
-    res.write(
-      `data: ${JSON.stringify({
-        type: 'participant_end',
-        participantId: participant.id,
-        participantName: participant.name,
-        participantTitle: participant.title,
-        content: fullContent,
-      })}\n\n`,
-    )
+  const systemPrompt = buildSystemPrompt(speaker, meetingInfo, participants)
+  const messages = buildMessages(systemPrompt, history || [])
 
-    // Add this participant's response to history for the next participant
-    currentHistory.push({
-      senderId: participant.id,
-      senderName: participant.name,
-      title: participant.title,
-      content: fullContent,
-      isUser: false,
+  let fullContent = ''
+
+  try {
+    for await (const chunk of streamLLM(messages)) {
+      if (aborted || res.destroyed) break
+      fullContent += chunk
+      send({
+        type: 'delta',
+        participantId: speaker.id,
+        content: chunk,
+      })
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '未知错误'
+    console.error('LLM error:', message)
+    send({
+      type: 'error',
+      message: `AI 生成失败: ${message}`,
     })
   }
 
   clearInterval(heartbeat)
 
-  if (!res.writableEnded) {
+  if (!res.writableEnded && !res.destroyed) {
+    // Notify: this speaker finished
+    send({
+      type: 'participant_end',
+      participantId: speaker.id,
+      participantName: speaker.name,
+      participantTitle: speaker.title,
+      content: fullContent,
+    })
     res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
     res.end()
   }
