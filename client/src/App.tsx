@@ -1,170 +1,133 @@
-import { useState, useEffect } from 'react'
+import { useMeetingStore } from './store'
+import { Sidebar } from './components/Sidebar'
 import { ParticipantSetup } from './components/ParticipantSetup'
 import { MeetingSetup } from './components/MeetingSetup'
 import { MeetingRoom } from './components/MeetingRoom'
-import type { Participant, MeetingInfo, ChatMessage } from './types'
 
-type Step = 'participants' | 'meeting' | 'chat'
-
-const STEPS: { key: Step; label: string }[] = [
+const CONFIG_STEPS = [
   { key: 'participants', label: '参会人员' },
   { key: 'meeting', label: '会议信息' },
-  { key: 'chat', label: '会议演练' },
-]
-
-const STORAGE_KEY = 'meeting-room-state-v1'
-
-interface PersistedState {
-  step: Step
-  participants: Participant[]
-  meetingInfo: MeetingInfo
-  messages: ChatMessage[]
-}
-
-const DEFAULT_PARTICIPANTS: Participant[] = [
-  {
-    id: 'user',
-    name: '我',
-    title: '产品经理',
-    personality: '',
-    speakingStyle: '',
-    isUser: true,
-    avatarColor: 'bg-coz-primary text-white',
-  },
-]
-
-const DEFAULT_MEETING_INFO: MeetingInfo = {
-  topic: '',
-  background: '',
-  goal: '',
-  materials: '',
-}
-
-function loadPersistedState(): PersistedState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<PersistedState>
-    if (!parsed || typeof parsed !== 'object') return null
-
-    const steps = STEPS.map((s) => s.key)
-    return {
-      step: steps.includes(parsed.step as Step) ? (parsed.step as Step) : 'participants',
-      participants:
-        Array.isArray(parsed.participants) && parsed.participants.length > 0
-          ? parsed.participants
-          : DEFAULT_PARTICIPANTS,
-      meetingInfo: { ...DEFAULT_MEETING_INFO, ...(parsed.meetingInfo || {}) },
-      // 恢复时将中断的流式消息视为已完成，过滤掉尚未产生内容的消息
-      messages: (Array.isArray(parsed.messages) ? parsed.messages : [])
-        .filter((m) => m && typeof m.content === 'string' && m.content.length > 0)
-        .map((m) => ({ ...m, isStreaming: false })),
-    }
-  } catch {
-    return null
-  }
-}
-
-function persistState(state: PersistedState) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    // 忽略存储配额等异常
-  }
-}
+] as const
 
 export default function App() {
-  const [initialState] = useState(loadPersistedState)
-  const [step, setStep] = useState<Step>(initialState?.step ?? 'participants')
-  const [participants, setParticipants] = useState<Participant[]>(
-    initialState?.participants ?? DEFAULT_PARTICIPANTS,
-  )
-  const [meetingInfo, setMeetingInfo] = useState<MeetingInfo>(
-    initialState?.meetingInfo ?? DEFAULT_MEETING_INFO,
-  )
-  const [messages, setMessages] = useState<ChatMessage[]>(
-    initialState?.messages ?? [],
-  )
+  const view = useMeetingStore((s) => s.view)
+  const configStep = useMeetingStore((s) => s.configStep)
+  const meetings = useMeetingStore((s) => s.meetings)
+  const selectedMeetingId = useMeetingStore((s) => s.selectedMeetingId)
+  const confirmNewMeeting = useMeetingStore((s) => s.confirmNewMeeting)
+  const resolveConfirm = useMeetingStore((s) => s.resolveConfirm)
+  const setConfigStep = useMeetingStore((s) => s.setConfigStep)
+  const setDraftParticipants = useMeetingStore((s) => s.setDraftParticipants)
+  const setDraftMeetingInfo = useMeetingStore((s) => s.setDraftMeetingInfo)
+  const createMeeting = useMeetingStore((s) => s.createMeeting)
+  const draftParticipants = useMeetingStore((s) => s.draftParticipants)
+  const draftMeetingInfo = useMeetingStore((s) => s.draftMeetingInfo)
 
-  // 状态变化时持久化，刷新 / HMR 后可恢复
-  useEffect(() => {
-    persistState({ step, participants, meetingInfo, messages })
-  }, [step, participants, meetingInfo, messages])
-
-  const currentStepIndex = STEPS.findIndex((s) => s.key === step)
+  const selectedMeeting = meetings.find((m) => m.id === selectedMeetingId)
+  const ongoingMeeting = meetings.find((m) => m.status === 'ongoing')
+  const stepIndex = CONFIG_STEPS.findIndex((s) => s.key === configStep)
 
   return (
-    <div className="w-full h-screen flex flex-col bg-coz-cream">
-      {/* 应用内容区：米灰底 + 白色圆角卡片 */}
-      <div className="flex-1 min-h-0 p-2 pl-1">
-        <div className="h-full flex flex-col bg-coz-card rounded-coz-card overflow-hidden">
-          {/* Header */}
-          <header className="h-12 shrink-0 flex items-center gap-3 px-3 border-b border-coz-border/60">
-            <div className="flex items-center gap-2 pl-1">
-              <div className="w-7 h-7 rounded-lg bg-coz-primary text-white flex items-center justify-center text-[11px] font-bold">
-                PM
+    <div className="w-full h-screen flex gap-1.5 p-1.5 bg-coz-cream overflow-hidden">
+      {/* 左侧边栏：会议列表 */}
+      <Sidebar />
+
+      {/* 右侧主区域 */}
+      <div className="flex-1 min-w-0 flex flex-col bg-coz-card rounded-coz-card overflow-hidden">
+        {view === 'welcome' && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="w-14 h-14 rounded-coz-xl bg-coz-bubble-ai flex items-center justify-center text-2xl mb-4">
+              💬
+            </div>
+            <h3 className="text-base font-medium text-coz-text1">会议演练室</h3>
+            <p className="text-sm text-coz-text3 mt-1.5">
+              从左侧选择一个会议查看记录，或点击「新建会议」开始演练
+            </p>
+          </div>
+        )}
+
+        {view === 'config' && (
+          <div className="flex-1 min-h-0 flex flex-col">
+            {/* 配置页头：步骤指示 */}
+            <div className="h-12 shrink-0 flex items-center gap-3 px-4 border-b border-coz-border/60">
+              <span className="text-sm font-medium text-coz-text1">新建会议</span>
+              <div className="flex items-center gap-1.5">
+                {CONFIG_STEPS.map((s, i) => (
+                  <div key={s.key} className="flex items-center gap-1.5">
+                    <span
+                      className={`flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs transition-colors ${
+                        i === stepIndex
+                          ? 'bg-coz-primary/8 text-coz-primary font-medium'
+                          : i < stepIndex
+                            ? 'text-coz-text2'
+                            : 'text-coz-text3'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center">{i + 1}</span>
+                      {s.label}
+                    </span>
+                    {i < CONFIG_STEPS.length - 1 && (
+                      <span className={`h-px w-4 ${i < stepIndex ? 'bg-coz-primary/40' : 'bg-coz-border'}`} />
+                    )}
+                  </div>
+                ))}
               </div>
-              <span className="text-sm font-medium text-coz-text1">会议演练室</span>
             </div>
 
-            {/* Stepper */}
-            <div className="flex-1 flex items-center justify-center gap-1">
-              {STEPS.map((s, i) => (
-                <button
-                  key={s.key}
-                  onClick={() => {
-                    // 允许回看已完成步骤，不允许跳步进入聊天
-                    if (i <= currentStepIndex) setStep(s.key)
-                  }}
-                  className={`flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs transition-colors ${
-                    i === currentStepIndex
-                      ? 'bg-coz-primary/8 text-coz-primary font-medium'
-                      : i < currentStepIndex
-                        ? 'text-coz-text2 hover:bg-coz-hover cursor-pointer'
-                        : 'text-coz-text3 cursor-default'
-                  }`}
-                >
-                  <span className="flex items-center justify-center">{i + 1}</span>
-                  <span>{s.label}</span>
-                </button>
-              ))}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {configStep === 'participants' && (
+                <ParticipantSetup
+                  participants={draftParticipants}
+                  setParticipants={setDraftParticipants}
+                  onNext={() => setConfigStep('meeting')}
+                />
+              )}
+              {configStep === 'meeting' && (
+                <MeetingSetup
+                  meetingInfo={draftMeetingInfo}
+                  setMeetingInfo={setDraftMeetingInfo}
+                  onPrev={() => setConfigStep('participants')}
+                  onNext={createMeeting}
+                />
+              )}
             </div>
+          </div>
+        )}
 
-            <div className="w-24" />
-          </header>
+        {view === 'chat' && selectedMeeting && <MeetingRoom meeting={selectedMeeting} />}
+        {view === 'chat' && !selectedMeeting && (
+          <div className="flex-1 flex items-center justify-center text-sm text-coz-text3">
+            会议不存在或已被删除
+          </div>
+        )}
+      </div>
 
-          {/* Content */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            {step === 'participants' && (
-              <ParticipantSetup
-                participants={participants}
-                setParticipants={setParticipants}
-                onNext={() => setStep('meeting')}
-              />
-            )}
-            {step === 'meeting' && (
-              <MeetingSetup
-                meetingInfo={meetingInfo}
-                setMeetingInfo={setMeetingInfo}
-                onPrev={() => setStep('participants')}
-                onNext={() => setStep('chat')}
-              />
-            )}
-            {step === 'chat' && (
-              <MeetingRoom
-                participants={participants}
-                meetingInfo={meetingInfo}
-                messages={messages}
-                setMessages={setMessages}
-                onExit={() => {
-                  setMessages([])
-                  setStep('participants')
-                }}
-              />
-            )}
+      {/* 新建会议确认弹窗：存在进行中的会议时弹出 */}
+      {confirmNewMeeting && ongoingMeeting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="w-[380px] bg-coz-card rounded-coz-card p-5 shadow-xl animate-fade-in">
+            <h3 className="text-base font-medium text-coz-text1">结束当前会议？</h3>
+            <p className="mt-2 text-sm text-coz-text2 leading-5">
+              当前有正在进行中的会议「{ongoingMeeting.topic || '未命名会议'}
+              」。进行中的会议只能有一个，是否结束该会议并创建新会议？
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => resolveConfirm(false)}
+                className="h-8 px-4 rounded-full text-sm font-medium text-coz-text2 hover:bg-coz-hover transition-colors"
+              >
+                否
+              </button>
+              <button
+                onClick={() => resolveConfirm(true)}
+                className="h-8 px-4 rounded-full text-sm font-medium bg-coz-primary text-white hover:bg-coz-primary-hover transition-colors"
+              >
+                是，结束并新建
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -1,13 +1,10 @@
-import { useRef, useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { streamChat } from '../api'
-import type { Participant, MeetingInfo, ChatMessage } from '../types'
+import { useMeetingStore, type Meeting } from '../store'
+import type { ChatMessage } from '../types'
 
 interface Props {
-  participants: Participant[]
-  meetingInfo: MeetingInfo
-  messages: ChatMessage[]
-  setMessages: Dispatch<SetStateAction<ChatMessage[]>>
-  onExit: () => void
+  meeting: Meeting
 }
 
 // ---- 内联图标（lucide 线性风格） ----
@@ -52,12 +49,20 @@ function IconSquare({ className = 'size-3.5' }: { className?: string }) {
   )
 }
 
-export function MeetingRoom({ participants, meetingInfo, messages, setMessages, onExit }: Props) {
+export function MeetingRoom({ meeting }: Props) {
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingParticipantId, setStreamingParticipantId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const updateMessages = useMeetingStore((s) => s.updateMessages)
+  const endMeeting = useMeetingStore((s) => s.endMeeting)
+
+  const messages = meeting.messages
+  const participants = meeting.participants
+  const meetingInfo = meeting.meetingInfo
+  const isEnded = meeting.status === 'ended'
   const aiParticipants = participants.filter((p) => !p.isUser)
 
   // Auto-scroll to bottom on new messages
@@ -67,12 +72,12 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
 
   // Auto-focus input
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [isStreaming])
+    if (!isEnded) inputRef.current?.focus()
+  }, [isStreaming, isEnded])
 
   const handleSend = async () => {
     const trimmed = input.trim()
-    if (!trimmed || isStreaming) return
+    if (!trimmed || isStreaming || isEnded) return
 
     // Add user message immediately
     const userMessage: ChatMessage = {
@@ -86,7 +91,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
       timestamp: Date.now(),
       avatarColor: 'bg-coz-primary text-white',
     }
-    setMessages((prev) => [...prev, userMessage])
+    updateMessages(meeting.id, (prev) => [...prev, userMessage])
     setInput('')
     setIsStreaming(true)
 
@@ -99,7 +104,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
       if (hasError) break
 
       const msgId = `msg${Date.now()}_${p.id}_${Math.random().toString(36).slice(2, 7)}`
-      setMessages((prev) => [
+      updateMessages(meeting.id, (prev) => [
         ...prev,
         {
           id: msgId,
@@ -128,7 +133,7 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
           if (event.type === 'delta' && event.content) {
             content += event.content
             const snapshot = content
-            setMessages((prev) =>
+            updateMessages(meeting.id, (prev) =>
               prev.map((m) => (m.id === msgId ? { ...m, content: snapshot } : m)),
             )
           } else if (event.type === 'error') {
@@ -152,11 +157,11 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
           timestamp: Date.now(),
           avatarColor: p.avatarColor,
         }
-        setMessages((prev) => prev.map((m) => (m.id === msgId ? finalMsg : m)))
+        updateMessages(meeting.id, (prev) => prev.map((m) => (m.id === msgId ? finalMsg : m)))
         history = [...history, finalMsg]
       } else {
         // 没有生成任何内容则移除占位消息，避免空气泡
-        setMessages((prev) => prev.filter((m) => m.id !== msgId))
+        updateMessages(meeting.id, (prev) => prev.filter((m) => m.id !== msgId))
       }
       setStreamingParticipantId(null)
     }
@@ -184,8 +189,13 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex h-8 max-w-full items-center overflow-hidden rounded-md hover:bg-coz-hover px-2 transition-colors">
             <span className="min-w-0 truncate text-sm font-medium text-coz-text1">
-              {meetingInfo.topic || '未命名会议'}
+              {meeting.topic || '未命名会议'}
             </span>
+            {isEnded && (
+              <span className="ml-2 shrink-0 inline-flex items-center rounded-full bg-coz-bubble-user px-1.5 py-0.5 text-[10px] font-medium text-coz-text5">
+                已结束
+              </span>
+            )}
             <span className="inline-block h-3 w-px shrink-0 bg-coz-border mx-2" />
             <span className="flex shrink-0 items-center gap-1.5 text-xs leading-4 text-coz-text3">
               <span className="flex items-center gap-0.5">
@@ -199,12 +209,14 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
             </span>
           </div>
         </div>
-        <button
-          onClick={onExit}
-          className="shrink-0 h-7 px-3 rounded-md text-xs font-medium text-coz-text2 hover:bg-coz-hover transition-colors"
-        >
-          退出会议
-        </button>
+        {!isEnded && (
+          <button
+            onClick={() => endMeeting(meeting.id)}
+            className="shrink-0 h-7 px-3 rounded-md text-xs font-medium text-coz-text2 hover:bg-coz-hover transition-colors"
+          >
+            结束会议
+          </button>
+        )}
       </div>
 
       {/* 消息区 */}
@@ -230,7 +242,9 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
                 </div>
                 <h3 className="text-base font-medium text-coz-text1">会议已准备就绪</h3>
                 <p className="text-sm text-coz-text3 mt-1.5 max-w-sm">
-                  在下方输入框开始你的发言，参会人员将按固定顺序轮流回应。
+                  {isEnded
+                    ? '该会议已结束，暂无聊天记录。'
+                    : '在下方输入框开始你的发言，参会人员将按固定顺序轮流回应。'}
                 </p>
                 <div className="mt-4 flex flex-wrap justify-center gap-1.5 max-w-md">
                   {aiParticipants.map((p) => (
@@ -281,8 +295,14 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isStreaming}
-              placeholder={isStreaming ? '参会人员正在发言中...' : '同步更多项目背景和信息，提升协作效率'}
+              disabled={isStreaming || isEnded}
+              placeholder={
+                isEnded
+                  ? '会议已结束，仅可查看记录'
+                  : isStreaming
+                    ? '参会人员正在发言中...'
+                    : '同步更多项目背景和信息，提升协作效率'
+              }
               rows={1}
               className="w-full px-0.5 text-sm leading-5 resize-none bg-transparent outline-none placeholder:text-coz-text3 text-coz-text1 max-h-32 disabled:text-coz-text3"
               style={{ minHeight: '24px' }}
@@ -302,9 +322,9 @@ export function MeetingRoom({ participants, meetingInfo, messages, setMessages, 
                 ) : (
                   <button
                     onClick={handleSend}
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || isEnded}
                     className={`flex size-7 items-center justify-center rounded-full transition-colors ${
-                      !input.trim()
+                      !input.trim() || isEnded
                         ? 'bg-coz-text3/40 text-white cursor-not-allowed'
                         : 'bg-coz-primary text-white hover:bg-coz-primary-hover cursor-pointer'
                     }`}

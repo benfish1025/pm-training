@@ -136,7 +136,7 @@ export function MeetingSetup({ meetingInfo, setMeetingInfo, onPrev, onNext }: Pr
               : 'bg-coz-primary text-white hover:bg-coz-primary-hover cursor-pointer'
           }`}
         >
-          进入会议室 →
+          继续
         </button>
       </div>
     </div>
