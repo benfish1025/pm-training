@@ -7,43 +7,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        arcoblue: {
-          1: '#E8F3FF',
-          2: '#BEDAFF',
-          3: '#94BFFF',
-          4: '#6AA1FF',
-          5: '#4080FF',
-          6: '#165DFF',
-          7: '#0E42D2',
-          8: '#072CA6',
-          9: '#031A79',
-          10: '#000D4D',
-        },
-        arco: {
-          1: '#F7F8FA',
-          2: '#F2F3F5',
-          3: '#E5E6EB',
-          4: '#C9CDD4',
-          5: '#A9AEB8',
-          6: '#86909C',
-          7: '#6B7785',
-          8: '#4E5969',
-          9: '#272E3B',
-          10: '#1D2129',
-        },
-        arcogreen: {
-          1: '#E8FFEA',
-          2: '#AFF0B5',
-          6: '#00B42A',
+        // Coze 设计规范（浅色）
+        coz: {
+          // 应用底色 / 奶油米灰
+          cream: '#f7f7f5',
+          // 文本层级
+          text1: '#09090b',
+          text2: '#3f3f46',
+          text3: '#a1a1aa',
+          text5: '#808087',
+          // 卡片与边框
+          card: '#ffffff',
+          border: '#e7e5e4',
+          // 交互色
+          hover: 'rgba(10,10,10,0.05)',
+          // 气泡
+          'bubble-ai': '#EBEFEB',
+          'bubble-user': 'rgba(10,10,10,0.05)',
+          // 品牌紫
+          primary: '#412bff',
+          'primary-hover': '#3722d9',
         },
       },
       borderRadius: {
-        'arco-sm': '2px',
-        'arco': '4px',
-        'arco-lg': '8px',
+        // Coze 卡片与输入框大圆角
+        'coz-card': '12px',
+        'coz-xl': '20px',
+      },
+      boxShadow: {
+        // 输入卡片阴影
+        'coz-input': '0 4px 12px 0 rgba(134,145,161,0.08)',
       },
       fontFamily: {
-        arco: ['"PingFang SC"', '"Microsoft YaHei"', 'Arial', 'sans-serif'],
+        coz: ['-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Microsoft YaHei"', 'Arial', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-in-out',

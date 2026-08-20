@@ -42,7 +42,7 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '技术负责人',
     personality: '务实、严谨，对技术可行性有较高要求',
     speakingStyle: '喜欢用技术原理解释问题，会关注实现成本和排期',
-    avatarColor: 'bg-arcoblue-1 text-arcoblue-6',
+    avatarColor: 'bg-[#EBEFEB] text-[#3d5a47]',
     emoji: '🔧',
   },
   {
@@ -50,7 +50,7 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '设计师',
     personality: '注重用户体验，有较强的同理心',
     speakingStyle: '常从用户视角出发，关注交互流程和视觉一致性',
-    avatarColor: 'bg-pink-50 text-pink-600',
+    avatarColor: 'bg-[#F5E4F0] text-[#7e4166]',
     emoji: '🎨',
   },
   {
@@ -58,7 +58,7 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '业务方',
     personality: '结果导向，关注商业价值和投入产出比',
     speakingStyle: '喜欢谈 ROI、用户增长、营收影响',
-    avatarColor: 'bg-orange-50 text-orange-600',
+    avatarColor: 'bg-[#F5E9E4] text-[#7e5a41]',
     emoji: '📊',
   },
   {
@@ -66,7 +66,7 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '测试负责人',
     personality: '细心、严格，关注边界条件和异常场景',
     speakingStyle: '常提出边界情况和风险点，关注质量指标',
-    avatarColor: 'bg-arcogreen-1 text-arcogreen-6',
+    avatarColor: 'bg-[#E9F5EA] text-[#3f7a45]',
     emoji: '🧪',
   },
   {
@@ -74,7 +74,7 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '运营经理',
     personality: '关注上线后的运营效果和用户反馈',
     speakingStyle: '关注用户分层、运营策略、数据反馈',
-    avatarColor: 'bg-purple-50 text-purple-600',
+    avatarColor: 'bg-[#EDE4F5] text-[#5f417e]',
     emoji: '📢',
   },
   {
@@ -82,18 +82,18 @@ export const PRESET_ROLES: PresetRole[] = [
     title: '数据分析师',
     personality: '数据驱动，注重指标体系',
     speakingStyle: '常提到数据埋点、A/B 测试、指标定义',
-    avatarColor: 'bg-cyan-50 text-cyan-600',
+    avatarColor: 'bg-[#E4F0F5] text-[#3f6a7e]',
     emoji: '📈',
   },
 ]
 
 export const AVATAR_COLORS = [
-  'bg-arcoblue-1 text-arcoblue-6',
-  'bg-pink-50 text-pink-600',
-  'bg-orange-50 text-orange-600',
-  'bg-arcogreen-1 text-arcogreen-6',
-  'bg-purple-50 text-purple-600',
-  'bg-cyan-50 text-cyan-600',
-  'bg-rose-50 text-rose-600',
-  'bg-teal-50 text-teal-600',
+  'bg-[#EBEFEB] text-[#3d5a47]',
+  'bg-[#E4E7F5] text-[#41477e]',
+  'bg-[#F5E9E4] text-[#7e5a41]',
+  'bg-[#E9F5EA] text-[#3f7a45]',
+  'bg-[#F5E4F0] text-[#7e4166]',
+  'bg-[#E4F0F5] text-[#3f6a7e]',
+  'bg-[#F5F0E4] text-[#7e6b3f]',
+  'bg-[#EDE4F5] text-[#5f417e]',
 ]

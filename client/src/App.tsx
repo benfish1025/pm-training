@@ -1,4 +1,4 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useState, useEffect } from 'react'
 import { ParticipantSetup } from './components/ParticipantSetup'
 import { MeetingSetup } from './components/MeetingSetup'
 import { MeetingRoom } from './components/MeetingRoom'
@@ -29,7 +29,7 @@ const DEFAULT_PARTICIPANTS: Participant[] = [
     personality: '',
     speakingStyle: '',
     isUser: true,
-    avatarColor: 'bg-arcoblue-6 text-white',
+    avatarColor: 'bg-coz-primary text-white',
   },
 ]
 
@@ -94,73 +94,76 @@ export default function App() {
   const currentStepIndex = STEPS.findIndex((s) => s.key === step)
 
   return (
-    <div className="min-h-screen bg-arco-1 flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-arco-3 px-4 sm:px-6 py-3 shrink-0">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-arco bg-arcoblue-6 text-white flex items-center justify-center text-xs font-bold">
-              PM
+    <div className="w-full h-screen flex flex-col bg-coz-cream">
+      {/* 应用内容区：米灰底 + 白色圆角卡片 */}
+      <div className="flex-1 min-h-0 p-2 pl-1">
+        <div className="h-full flex flex-col bg-coz-card rounded-coz-card overflow-hidden">
+          {/* Header */}
+          <header className="h-12 shrink-0 flex items-center gap-3 px-3 border-b border-coz-border/60">
+            <div className="flex items-center gap-2 pl-1">
+              <div className="w-7 h-7 rounded-lg bg-coz-primary text-white flex items-center justify-center text-[11px] font-bold">
+                PM
+              </div>
+              <span className="text-sm font-medium text-coz-text1">会议演练室</span>
             </div>
-            <h1 className="text-base font-medium text-arco-10">会议演练室</h1>
-          </div>
 
-          {/* Stepper */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            {STEPS.map((s, i) => (
-              <div key={s.key} className="flex items-center">
-                <div
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-arco text-xs sm:text-sm transition-colors ${
+            {/* Stepper */}
+            <div className="flex-1 flex items-center justify-center gap-1">
+              {STEPS.map((s, i) => (
+                <button
+                  key={s.key}
+                  onClick={() => {
+                    // 允许回看已完成步骤，不允许跳步进入聊天
+                    if (i <= currentStepIndex) setStep(s.key)
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs transition-colors ${
                     i === currentStepIndex
-                      ? 'bg-arcoblue-6 text-white font-medium'
+                      ? 'bg-coz-primary/8 text-coz-primary font-medium'
                       : i < currentStepIndex
-                        ? 'bg-arcoblue-1 text-arcoblue-6'
-                        : 'bg-arco-1 text-arco-5'
+                        ? 'text-coz-text2 hover:bg-coz-hover cursor-pointer'
+                        : 'text-coz-text3 cursor-default'
                   }`}
                 >
-                  <span className="w-4 h-4 flex items-center justify-center">
-                    {i < currentStepIndex ? '✓' : i + 1}
-                  </span>
-                  <span className="hidden sm:inline">{s.label}</span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className={`w-3 sm:w-6 h-px ${i < currentStepIndex ? 'bg-arcoblue-3' : 'bg-arco-3'}`} />
-                )}
-              </div>
-            ))}
+                  <span className="flex items-center justify-center">{i + 1}</span>
+                  <span>{s.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="w-24" />
+          </header>
+
+          {/* Content */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {step === 'participants' && (
+              <ParticipantSetup
+                participants={participants}
+                setParticipants={setParticipants}
+                onNext={() => setStep('meeting')}
+              />
+            )}
+            {step === 'meeting' && (
+              <MeetingSetup
+                meetingInfo={meetingInfo}
+                setMeetingInfo={setMeetingInfo}
+                onPrev={() => setStep('participants')}
+                onNext={() => setStep('chat')}
+              />
+            )}
+            {step === 'chat' && (
+              <MeetingRoom
+                participants={participants}
+                meetingInfo={meetingInfo}
+                messages={messages}
+                setMessages={setMessages}
+                onExit={() => {
+                  setMessages([])
+                  setStep('participants')
+                }}
+              />
+            )}
           </div>
         </div>
-      </header>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {step === 'participants' && (
-          <ParticipantSetup
-            participants={participants}
-            setParticipants={setParticipants}
-            onNext={() => setStep('meeting')}
-          />
-        )}
-        {step === 'meeting' && (
-          <MeetingSetup
-            meetingInfo={meetingInfo}
-            setMeetingInfo={setMeetingInfo}
-            onPrev={() => setStep('participants')}
-            onNext={() => setStep('chat')}
-          />
-        )}
-        {step === 'chat' && (
-          <MeetingRoom
-            participants={participants}
-            meetingInfo={meetingInfo}
-            messages={messages}
-            setMessages={setMessages}
-            onExit={() => {
-              setMessages([])
-              setStep('participants')
-            }}
-          />
-        )}
       </div>
     </div>
   )

@@ -47,37 +47,36 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
     )
   }
 
+  const inputCls =
+    'w-full mt-0.5 px-2.5 py-1.5 text-sm bg-coz-cream/60 border border-transparent rounded-md text-coz-text1 placeholder:text-coz-text3 hover:border-coz-border focus:border-coz-primary/40 focus:bg-coz-card focus:outline-none transition-colors'
+
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 overflow-y-auto h-full">
+    <div className="max-w-[808px] mx-auto px-6 py-6 overflow-y-auto h-full">
       <div className="mb-6">
-        <h2 className="text-xl font-medium text-arco-10">参会人员组装台</h2>
-        <p className="text-sm text-arco-6 mt-1">
+        <h2 className="text-lg font-medium text-coz-text1">参会人员组装台</h2>
+        <p className="text-sm text-coz-text3 mt-1">
           选择参会角色，组建你的会议团队。你作为产品经理始终参会。
         </p>
       </div>
 
       {/* User (always present) */}
       <div className="mb-6">
-        <h3 className="text-xs font-medium text-arco-5 mb-2">
-          我（始终参会）
-        </h3>
-        <div className="flex items-center gap-3 p-3.5 bg-arcoblue-1 border border-arcoblue-2 rounded-arco-lg">
-          <div className="w-10 h-10 rounded-full bg-arcoblue-6 text-white flex items-center justify-center font-medium shrink-0">
+        <h3 className="text-xs font-medium text-coz-text5 mb-2">我（始终参会）</h3>
+        <div className="flex items-center gap-2.5 p-2.5 bg-coz-bubble-user rounded-lg">
+          <div className="relative flex size-6 shrink-0 overflow-hidden rounded-full ring-[0.5px] ring-coz-border bg-coz-primary text-white items-center justify-center text-[11px] font-medium">
             我
           </div>
           <div>
-            <div className="font-medium text-arco-10">我</div>
-            <div className="text-sm text-arco-6">产品经理</div>
+            <div className="text-sm font-medium text-coz-text1 leading-5">我</div>
+            <div className="text-xs text-coz-text3 leading-4">产品经理</div>
           </div>
         </div>
       </div>
 
       {/* Preset roles */}
       <div className="mb-6">
-        <h3 className="text-xs font-medium text-arco-5 mb-2">
-          快速添加角色
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+        <h3 className="text-xs font-medium text-coz-text5 mb-2">快速添加角色</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5">
           {PRESET_ROLES.map((preset) => {
             const alreadyAdded = aiParticipants.some((p) => p.title === preset.title)
             return (
@@ -85,22 +84,22 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
                 key={preset.title}
                 onClick={() => addPreset(preset)}
                 disabled={alreadyAdded}
-                className={`flex items-center gap-3 p-3 rounded-arco-lg border text-left transition-all ${
+                className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-colors ${
                   alreadyAdded
-                    ? 'border-arco-3 bg-arco-1 opacity-50 cursor-not-allowed'
-                    : 'border-arco-3 hover:border-arcoblue-4 hover:bg-arcoblue-1 cursor-pointer'
+                    ? 'border-transparent bg-coz-cream/50 opacity-50 cursor-not-allowed'
+                    : 'border-transparent hover:bg-coz-hover hover:border-coz-border/60 cursor-pointer'
                 }`}
               >
                 <div
-                  className={`w-10 h-10 rounded-full ${preset.avatarColor} flex items-center justify-center text-lg shrink-0`}
+                  className={`relative flex size-7 shrink-0 overflow-hidden rounded-full ring-[0.5px] ring-coz-border ${preset.avatarColor} items-center justify-center text-sm`}
                 >
                   {preset.emoji}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-medium text-arco-10 text-sm truncate">
+                  <div className="font-medium text-coz-text1 text-sm leading-5 truncate">
                     {preset.title}
                   </div>
-                  <div className="text-xs text-arco-6">{preset.name}</div>
+                  <div className="text-xs text-coz-text3 leading-4">{preset.name}</div>
                 </div>
               </button>
             )
@@ -111,42 +110,42 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
       {/* AI Participants list */}
       {aiParticipants.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium text-arco-5 mb-2">
+          <h3 className="text-xs font-medium text-coz-text5 mb-2">
             已添加参会者（{aiParticipants.length}）
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {aiParticipants.map((p) => (
               <div
                 key={p.id}
-                className="p-4 bg-white border border-arco-3 rounded-arco-lg animate-fade-in"
+                className="p-3 bg-coz-cream/60 rounded-xl animate-fade-in"
               >
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2.5 mb-2">
                   <div
-                    className={`w-10 h-10 rounded-full ${p.avatarColor} flex items-center justify-center font-medium shrink-0`}
+                    className={`relative flex size-7 shrink-0 overflow-hidden rounded-full ring-[0.5px] ring-coz-border ${p.avatarColor} items-center justify-center text-xs font-medium`}
                   >
                     {p.name[0] || '?'}
                   </div>
                   <div className="flex-1 grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-arco-5">姓名</label>
+                      <label className="text-xs text-coz-text5">姓名</label>
                       <input
                         value={p.name}
                         onChange={(e) => updateParticipant(p.id, 'name', e.target.value)}
-                        className="w-full mt-0.5 px-2.5 py-1.5 text-sm font-medium border border-arco-3 rounded-arco focus:border-arcoblue-5 focus:outline-none focus:ring-1 focus:ring-arcoblue-2 transition-colors"
+                        className={inputCls + ' font-medium'}
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-arco-5">职位</label>
+                      <label className="text-xs text-coz-text5">职位</label>
                       <input
                         value={p.title}
                         onChange={(e) => updateParticipant(p.id, 'title', e.target.value)}
-                        className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-arco-3 rounded-arco focus:border-arcoblue-5 focus:outline-none focus:ring-1 focus:ring-arcoblue-2 transition-colors"
+                        className={inputCls}
                       />
                     </div>
                   </div>
                   <button
                     onClick={() => removeParticipant(p.id)}
-                    className="text-arco-4 hover:text-red-500 text-sm shrink-0 p-1"
+                    className="text-coz-text3 hover:text-red-500 text-sm shrink-0 p-1 leading-none"
                     title="移除"
                   >
                     ✕
@@ -154,20 +153,20 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-arco-5">性格特点</label>
+                    <label className="text-xs text-coz-text5">性格特点</label>
                     <textarea
                       value={p.personality}
                       onChange={(e) => updateParticipant(p.id, 'personality', e.target.value)}
-                      className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-arco-3 rounded-arco resize-none focus:border-arcoblue-5 focus:outline-none focus:ring-1 focus:ring-arcoblue-2 transition-colors"
+                      className={inputCls + ' resize-none'}
                       rows={2}
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-arco-5">说话风格</label>
+                    <label className="text-xs text-coz-text5">说话风格</label>
                     <textarea
                       value={p.speakingStyle}
                       onChange={(e) => updateParticipant(p.id, 'speakingStyle', e.target.value)}
-                      className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-arco-3 rounded-arco resize-none focus:border-arcoblue-5 focus:outline-none focus:ring-1 focus:ring-arcoblue-2 transition-colors"
+                      className={inputCls + ' resize-none'}
                       rows={2}
                     />
                   </div>
@@ -179,23 +178,23 @@ export function ParticipantSetup({ participants, setParticipants, onNext }: Prop
       )}
 
       {/* Add custom + Next */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between pt-1 pb-2">
         <button
           onClick={addCustom}
-          className="px-4 py-2 text-sm font-medium text-arcoblue-6 border border-arcoblue-4 rounded-arco hover:bg-arcoblue-1 transition-colors"
+          className="h-8 px-3 text-sm font-medium text-coz-text2 rounded-lg hover:bg-coz-hover transition-colors"
         >
           + 自定义角色
         </button>
         <button
           onClick={onNext}
           disabled={aiParticipants.length === 0}
-          className={`px-6 py-2 rounded-arco font-medium transition-all ${
+          className={`h-8 px-4 rounded-full text-sm font-medium transition-colors ${
             aiParticipants.length === 0
-              ? 'bg-arco-2 text-arco-4 cursor-not-allowed'
-              : 'bg-arcoblue-6 text-white hover:bg-arcoblue-5 cursor-pointer'
+              ? 'bg-coz-text3/30 text-white/80 cursor-not-allowed'
+              : 'bg-coz-primary text-white hover:bg-coz-primary-hover cursor-pointer'
           }`}
         >
-          下一步：填写会议信息 {'->'}
+          下一步：填写会议信息 →
         </button>
       </div>
     </div>

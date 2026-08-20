@@ -12,15 +12,15 @@ html, body, #root {
 }
 
 body {
-  font-family: 'nunito_for_arco', 'Helvetica Neue', Helvetica, 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', 'Segoe UI', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F7F8FA;
-  color: #1D2129;
+  background-color: #f7f7f5;
+  color: #09090b;
 }
 
-/* ArcoDesign scrollbar */
+/* 细滚动条（Coze 风格） */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -29,9 +29,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C9CDD4;
+  background: rgba(10, 10, 10, 0.15);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #A9AEB8;
+  background: rgba(10, 10, 10, 0.25);
 }
